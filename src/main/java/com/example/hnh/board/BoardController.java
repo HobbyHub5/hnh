@@ -60,6 +60,7 @@ public class BoardController {
     @GetMapping("/{boardId}")
     public ResponseEntity<SearchBoardResponseDto> getBoard(@PathVariable Long boardId) {
 
+        boardService.incrementView(boardId);
         SearchBoardResponseDto boardResponseDto = boardService.getBoard(boardId);
 
         return new ResponseEntity<>(boardResponseDto, HttpStatus.OK);

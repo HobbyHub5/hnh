@@ -44,6 +44,7 @@ public class ChatService {
         return rooms;
     }
 
+
     public ChatRoom getRoomById(String roomId) {
         return chatRooms.get(roomId);
     }

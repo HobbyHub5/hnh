@@ -2,6 +2,7 @@ package com.example.hnh.global.config;
 
 import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -37,18 +38,20 @@ public class WebConfig {
     /**
      * AuthenticationEntryPoint.
      */
-    private final AuthenticationEntryPoint authEntryPoint;
+//    private final AuthenticationEntryPoint authEntryPoint;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     /**
      * AccessDeniedHandler.
      */
-    private final AccessDeniedHandler accessDeniedHandler;
+//    private final AccessDeniedHandler accessDeniedHandler;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     /**
      * 화이트 리스트.
      */
     private static final String[] WHITE_LIST = {"/users/login", "/users/signup", "/error", "/admins/signup"
-            , "/ws/chat" , "/room" , "/chats"};
+            , "/ws/chat" , "/room" , "/chats/**"};
 
     /**
      * security 필터.
@@ -71,11 +74,12 @@ public class WebConfig {
                                         .requestMatchers("/admins/**").hasRole("ADMIN")
                                 // 나머지는 인증이 필요
                                 .anyRequest().authenticated()
+
                 )
                 // Spring Security 예외에 대한 처리를 핸들러에 위임.
                 .exceptionHandling(handler -> handler
-                        .authenticationEntryPoint(authEntryPoint)
-                        .accessDeniedHandler(accessDeniedHandler))
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler))
                 // JWT 기반 테스트를 위해 SecurityContext를 가져올 때 HttpSession을 사용하지 않도록 설정.
                 .sessionManagement(
                         session

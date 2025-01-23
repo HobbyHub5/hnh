@@ -5,26 +5,68 @@ on:
     branches:
       - main
       - develop
-      - feat/*
   pull_request:
     branches:
       - main
       - develop
-      - feat/*
 
 jobs:
   docker-build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: java setup
-        uses: actions/setup-java@v2
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
-          distribution: 'adopt'
-          java-version: '17'
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: make executable gradlew
-        run: chmod +x ./gradlew
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: hajupe/hnh-servers:1
+
+  deploy-to-ec2:
+    needs: docker-build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create .env file
+        run: |
+          echo "AWS_IAM_ACCESS_KEY=${{ secrets.AWS_IAM_ACCESS_KEY }}" >> .env
+          echo "AWS_IAM_SECRET_KEY=${{ secrets.AWS_IAM_SECRET_KEY }}" >> .env
+          echo "AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}" >> .env
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
+          echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
+          echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env 
+          echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
+          echo "JPA_HIBERNATE_DDL=${{ secrets.JPA_HIBERNATE_DDL }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+
+      - name: Copy Docker Compose file to EC2
+        run: |
+          echo "${{ secrets.SSH_KEY }}" > key.pem
+          chmod 400 key.pem
+          scp -o StrictHostKeyChecking=no -i key.pem docker-compose.yaml ec2-user@${{ secrets.SSH_HOST }}:/home/ec2-user/
+          scp -o StrictHostKeyChecking=no -i key.pem .env ec2-user@${{ secrets.SSH_HOST }}:/home/ec2-user/
+
+      - name: Deploy to EC2 with Docker Compose
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            COMPOSE_FILE=/home/ec2-user/docker-compose.yaml
+            docker-compose -f $COMPOSE_FILE down
+            docker-compose -f $COMPOSE_FILE pull
+            docker-compose -f $COMPOSE_FILE up -d

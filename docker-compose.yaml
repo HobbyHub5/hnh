@@ -1,13 +1,12 @@
 services:
   app:
     build: .
-    image: hnh-servers:1
+    image: hajupe/hnh-servers:1
+    container_name: hnh-app
     ports:
       - "8080:8080"
     depends_on:
       - nginx
-      - redis
-      - mysql
     environment:
       - AWS_IAM_ACCESS_KEY=${AWS_IAM_ACCESS_KEY}
       - AWS_IAM_SECRET_KEY=${AWS_IAM_SECRET_KEY}
@@ -19,43 +18,15 @@ services:
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQLDialect
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      - MYSQL_URL=jdbc:mysql://hnh-mysql:3306/hnh
+      - MYSQL_URL=jdbc:mysql://hnh-server.c14ko6688c0b.ap-northeast-2.rds.amazonaws.com/hnh?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       - JWT_SECRET=036c4fe3ec667532545b9e8fa7e2a98a22f439dff102623c097715060e2da68c
+      - REDIS_HOST=hnh-redis-001.qgyfa2.0001.apn2.cache.amazonaws.com
+      - REDIS_PORT=6379
 
     env_file:
       - .env
-
-
-  mysql:
-    image: mysql:latest
-    container_name: hnh-mysql
-    environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      - MYSQL_DATABASE=hnh
-    ports:
-      - "23306:3306"
-    volumes:
-      - mysql-data:/var/lib/mysql
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
-  redis:
-    image: redis:latest
-    ports:
-      - "6379:6379"
 
   nginx:
     image: nginx:latest
     ports:
       - "80:80"
-    depends_on:
-      - redis
-      - mysql
-
-volumes:
-  mysql-data:

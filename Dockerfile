@@ -22,15 +22,10 @@ LABEL type="application"
 
 WORKDIR /apps
 
-# wait-for-it 스크립트 다운로드
-RUN apt-get update && apt-get install -y curl
-RUN curl -o /usr/local/bin/wait-for-it https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh
-RUN chmod +x /usr/local/bin/wait-for-it
-
 COPY --from=builder /apps/build/libs/*-SNAPSHOT.jar app.jar
 
 EXPOSE 8080
 
 USER nobody
 
-ENTRYPOINT ["wait-for-it", "hnh-mysql:3306", "--", "wait-for-it", "redis:6379", "--", "java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]

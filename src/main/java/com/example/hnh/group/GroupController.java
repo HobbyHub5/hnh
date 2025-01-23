@@ -3,6 +3,7 @@ package com.example.hnh.group;
 
 import com.example.hnh.global.config.auth.UserDetailsImpl;
 import com.example.hnh.group.dto.GroupDetailResponseDto;
+import com.example.hnh.group.dto.GroupRankingResponseDto;
 import com.example.hnh.group.dto.GroupRequestDto;
 import com.example.hnh.group.dto.GroupResponseDto;
 import com.example.hnh.user.User;
@@ -97,11 +98,14 @@ public class GroupController {
     }
 
 
+    /**
+     * 그룹 전체 랭킹 조회 API
+     * @return
+     */
     @GetMapping
-    public ResponseEntity<List<GroupResponseDto>> findAllGroups() {
+    public ResponseEntity<List<GroupRankingResponseDto>> findAllGroups() {
 
-        List<GroupResponseDto> groups = groupService.findAllGroups();
-
+        List<GroupRankingResponseDto> groups = groupService.findAllGroupsWithRanking();
         return ResponseEntity.ok(groups);
     }
 }

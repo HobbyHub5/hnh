@@ -2,6 +2,7 @@ package com.example.hnh.interestgroup;
 
 import com.example.hnh.group.Group;
 import com.example.hnh.group.GroupRepository;
+import com.example.hnh.group.RedisRankingRepository;
 import com.example.hnh.interestgroup.dto.InterestGroupResponseDto;
 import org.springframework.stereotype.Service;
 
@@ -14,11 +15,13 @@ public class InterestGroupService {
 
     private final InterestGroupRepository interestGroupRepository;
     private final GroupRepository groupRepository;
+    private final RedisRankingRepository redisRankingRepository;
 
     public InterestGroupService(InterestGroupRepository interestGroupRepository,
-                                GroupRepository groupRepository) {
+                                GroupRepository groupRepository, RedisRankingRepository redisRankingRepository) {
         this.interestGroupRepository = interestGroupRepository;
         this.groupRepository = groupRepository;
+        this.redisRankingRepository = redisRankingRepository;
     }
 
     /**
@@ -42,16 +45,31 @@ public class InterestGroupService {
             interestGroup.setGroup(group);
             interestGroup.setUserId(userId);
             interestGroupRepository.save(interestGroup);
-            return "좋아요를 눌렀습니다.";
+            redisRankingRepository.incrementGroupInterest(groupId, 1);
+            return "관심 그룹으로 등록하셨습니다.";
         }
 
         // 관심 그룹이 존재하면 상태값 토글
         InterestGroup interestGroup = existingInterest.get();
-        String newStatus = "active".equals(interestGroup.getStatus()) ? "deleted" : "active";
+
+        String newStatus = "";
+
+        if ("active".equals(interestGroup.getStatus())) {
+            // 상태를 "deleted"로 변경
+            newStatus = "deleted";
+            redisRankingRepository.incrementGroupInterest(groupId, -1);
+        }
+
+        if ("deleted".equals(interestGroup.getStatus())) {
+            // 상태를 "active"로 변경
+            newStatus = "active";
+            redisRankingRepository.incrementGroupInterest(groupId, 1);
+        }
+
         interestGroup.setStatus(newStatus);
         interestGroupRepository.save(interestGroup);
 
-        return "active".equals(newStatus) ? "좋아요를 눌렀습니다." : "좋아요를 취소했습니다.";
+        return "active".equals(newStatus) ? "관심 그룹으로 등록하셨습니다." : "관심 그룹을 취소하셨습니다.";
 
     }
 

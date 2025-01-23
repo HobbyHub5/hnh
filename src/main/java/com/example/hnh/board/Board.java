@@ -58,4 +58,8 @@ public class Board extends BaseEntity{
         this.imagePath = imagePath;
         this.detail = detail;
     }
+
+    public void setView(Long view) {
+        this.view = view;
+    }
 }

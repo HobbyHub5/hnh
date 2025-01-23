@@ -16,9 +16,11 @@ public enum ErrorCode {
     INVALID_IMAGE_URL(BAD_REQUEST, "지원되지 않는 이미지 주소 형식입니다"),
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
     UNAUTHORIZED_AUTHOR(UNAUTHORIZED, "작성자만 수정/삭제가 가능합니다."),
+    INVALID_TOKEN(UNAUTHORIZED,"인증되지 않는 토큰입니다."),
 
     /* 403 FORBIDDEN : 권한이 없음 */
     UNAUTHORIZED_USER(FORBIDDEN, "권한이 없습니다. 해당유저만 가능합니다."),
+    FORBIDDEN_ERROR(FORBIDDEN,"권한이 없습니다."),
 
     /* 404 NOT_FOUND : Resource 를 찾을 수 없음 */
     RESOURCES_NOT_FOUND(NOT_FOUND, "해당 리소트 값을 찾을 수 없습니다."),

@@ -16,10 +16,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +31,7 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final MemberRepository memberRepository;
     private final S3Service s3Service;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Transactional
     public BoardResponseDto createBoard(Long userId, Long groupId, String title, String detail, MultipartFile image) throws IOException {
@@ -65,10 +69,10 @@ public class BoardService {
 
     public SearchBoardResponseDto getBoard(Long boardId) {
 
-        //TODO:권한 처리(멤버만 볼 수 있게 설정)
         Board board = boardRepository.findByBoardIdOrElseThrow(boardId);
+        Long viewCount = getViewCount(boardId);
 
-        return new SearchBoardResponseDto(board);
+        return new SearchBoardResponseDto(board, viewCount);
     }
 
     public UpdateBoardResponseDto updateBoard(Long boardId, Long userId, Long groupId, String title, String detail, MultipartFile image) throws IOException {
@@ -79,7 +83,7 @@ public class BoardService {
             throw new CustomException(ErrorCode.UNAUTHORIZED_AUTHOR);
         }
 
-        //TODO:이미지 변경 시 기존 이미지 삭제 후 재 업로드
+        s3Service.deleteImage(board.getImagePath());
         String imagePath = s3Service.uploadImage(image);
 
         board.updateBoard(title, imagePath, detail);
@@ -93,6 +97,7 @@ public class BoardService {
                 board.getModifiedAt());
     }
 
+    @Transactional
     public MessageResponseDto deleteBoard(Long userId, Long groupId, Long boardId) {
         Member member = memberRepository.findByUserIdAndGroupIdOrElseThrow(userId, groupId);
         Board board = boardRepository.findByBoardIdOrElseThrow(boardId);
@@ -104,5 +109,50 @@ public class BoardService {
         board.setStatus("deleted");
 
         return new MessageResponseDto("삭제 완료되었습니다.");
+    }
+
+    @Transactional
+    public void incrementView(Long boardId) {
+        String redisKey = getRedisKey(boardId);
+
+        redisTemplate.opsForValue().increment(redisKey);
+    }
+
+    public Long getViewCount(Long boardId) {
+
+        String redisKey = getRedisKey(boardId);
+        String viewCount = redisTemplate.opsForValue().get(redisKey);
+
+        //현재 redisKey가 있으면 해당하는 value 리턴, 아니면 게시물의 조회수를 value로 저장 후 리턴
+        if(viewCount != null) {
+            return Long.parseLong(viewCount);
+        }else {
+            Board board = boardRepository.findByBoardIdOrElseThrow(boardId);
+            redisTemplate.opsForValue().set(redisKey, String.valueOf(board.getView()));
+            return board.getView();
+        }
+    }
+
+    //조회수 동기화(1분마다 동기화)
+    @Transactional
+    @Scheduled(fixedRate = 60000)
+    public void syncViewToDatabase() {
+        Set<String> keys = redisTemplate.keys("board:view:*");
+        if(keys != null){
+            for(String key : keys){
+                Long boardId = Long.parseLong(key.split(":")[2]);
+                String viewCount = redisTemplate.opsForValue().get(key);
+
+                if(viewCount != null) {
+                    Board board = boardRepository.findByBoardIdOrElseThrow(boardId);
+                    board.setView(Long.parseLong(viewCount));
+                    boardRepository.save(board);
+                }
+            }
+        }
+    }
+
+    private String getRedisKey(Long boardId) {
+        return "board:view:" + boardId;
     }
 }

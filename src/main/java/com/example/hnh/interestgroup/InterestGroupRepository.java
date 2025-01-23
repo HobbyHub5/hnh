@@ -11,4 +11,6 @@ public interface InterestGroupRepository extends JpaRepository<InterestGroup ,Lo
 
     List<InterestGroup> findByUserIdAndStatus(Long userId, String active);
 
+    // 특정 그룹의 활성 상태(active)인 관심 그룹 수를 카운트
+    int countByGroupIdAndStatus(Long groupId, String status);
 }

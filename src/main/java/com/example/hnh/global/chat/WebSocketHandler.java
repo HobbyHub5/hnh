@@ -1,6 +1,7 @@
 package com.example.hnh.global.chat;
 
 
+import com.example.hnh.global.util.JwtProvider;
 import com.example.hnh.member.MemberRepository;
 import com.example.hnh.user.User;
 import com.example.hnh.user.UserRepository;
@@ -25,13 +26,20 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private final ChatService chatService;
     private final UserRepository userRepository;
     private final MemberRepository memberRepository;
+    private final JwtProvider jwtProvider;
 
     //웹소켓 연결
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         String uriQuery  = Objects.requireNonNull(session.getUri()).getQuery();
+
         String userId = uriQuery.substring(uriQuery.lastIndexOf("=") +1);
         log.info("userId = {} is connected", userId );
+
+        String token = session.getHandshakeHeaders().get("bearer").get(0);
+        String userEmail = this.jwtProvider.getUsername(token);
+        User user = userRepository.findByEmailOrElseThrow(userEmail);
+        log.info("userId = {} ", user.getId() );
     }
 
     //메시징
@@ -43,7 +51,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
         String uriQuery  = Objects.requireNonNull(session.getUri()).getQuery();
         String userId = uriQuery.substring(uriQuery.lastIndexOf("=") +1);
-
         User user = userRepository.findByIdOrElseThrow(Long.valueOf(userId));
         chatMessage.setSender(user.getName());
         ChatRoom room = chatService.getRoomById(chatMessage.getRoomId());

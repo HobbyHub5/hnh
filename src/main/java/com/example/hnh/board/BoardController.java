@@ -62,6 +62,7 @@ public class BoardController {
 
         boardService.incrementView(boardId);
         SearchBoardResponseDto boardResponseDto = boardService.getBoard(boardId);
+        boardService.incrementView(boardId);
 
         return new ResponseEntity<>(boardResponseDto, HttpStatus.OK);
     }

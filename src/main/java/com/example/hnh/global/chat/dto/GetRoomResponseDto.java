@@ -27,6 +27,4 @@ public class GetRoomResponseDto {
             sessionId.add(s.getId());
         }
     }
-
-
 }

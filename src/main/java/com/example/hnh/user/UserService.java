@@ -4,6 +4,7 @@ import com.example.hnh.global.error.errorcode.ErrorCode;
 import com.example.hnh.global.error.exception.CustomException;
 import com.example.hnh.global.util.AuthenticationScheme;
 import com.example.hnh.global.util.JwtProvider;
+import com.example.hnh.global.util.RedisRefreshTokenRepository;
 import com.example.hnh.user.dto.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.Objects;
 
@@ -25,6 +27,7 @@ public class UserService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
+    private final RedisRefreshTokenRepository redisRefreshTokenRepository;
 
 
     //회원 가입
@@ -51,9 +54,34 @@ public class UserService {
         );
         // 토큰 생성
         String accessToken = this.jwtProvider.generateToken(authentication);
-        log.info("토큰 생성: {}", accessToken);
-        return new JwtAuthResponse(AuthenticationScheme.BEARER.getName(), accessToken);
+        String refreshToken = this.jwtProvider.generateRefreshToken(authentication);
+        log.info("accessToken 생성: {}", accessToken);
+        log.info("refreshToken 생성: {}", refreshToken);
+
+        return new JwtAuthResponse(AuthenticationScheme.BEARER.getName(), accessToken , refreshToken);
     }
+
+    public String accessTokenRefresh(Long userId , String bearerToken){
+        String refreshToken = getTokenFromHeader(bearerToken);
+        String email = this.jwtProvider.getUsername(refreshToken);
+        if (this.jwtProvider.validToken(refreshToken) && redisRefreshTokenRepository.validationToken(userId,refreshToken)){
+            return this.jwtProvider.generateAccessTokenByRefreshToken(email);
+        }else {
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
+        }
+    }
+
+    public String getTokenFromHeader(String bearerToken){
+        final String headerPrefix = AuthenticationScheme.generateType(AuthenticationScheme.BEARER);
+
+        boolean tokenFound =
+                StringUtils.hasText(bearerToken) && bearerToken.startsWith(headerPrefix);
+        if (tokenFound) {
+            return bearerToken.substring(headerPrefix.length());
+        }
+        return null;
+    }
+
 
     //회원 조회
     public UserResponseDto getUser(Long userId , User loginUser){

@@ -51,12 +51,13 @@ jobs:
           echo "JPA_HIBERNATE_DDL=${{ secrets.JPA_HIBERNATE_DDL }}" >> .env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
 
-      - name: Copy Docker Compose file to EC2
+      - name: Copy file to EC2
         run: |
           echo "${{ secrets.SSH_KEY }}" > key.pem
           chmod 400 key.pem
           scp -o StrictHostKeyChecking=no -i key.pem docker-compose.yaml ec2-user@${{ secrets.SSH_HOST }}:/home/ec2-user/
           scp -o StrictHostKeyChecking=no -i key.pem .env ec2-user@${{ secrets.SSH_HOST }}:/home/ec2-user/
+          scp -o StrictHostKeyChecking=no -i key.pem nginx.conf ec2-user@${{ secrets.SSH_HOST }}:/home/ec2-user/nginx.conf
 
       - name: Deploy to EC2 with Docker Compose
         uses: appleboy/ssh-action@v1.2.0
@@ -70,3 +71,4 @@ jobs:
             docker-compose -f $COMPOSE_FILE down
             docker-compose -f $COMPOSE_FILE pull
             docker-compose -f $COMPOSE_FILE up -d
+            docker-compose -f $COMPOSE_FILE restart nginx

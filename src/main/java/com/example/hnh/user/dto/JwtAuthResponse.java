@@ -28,10 +28,16 @@ public class JwtAuthResponse {
   private String accessToken;
 
   /**
+   * refresh token.
+   */
+  private String refreshToken;
+
+  /**
    * 생성자.
    */
-  public JwtAuthResponse(String tokenAuthScheme, String accessToken) {
+  public JwtAuthResponse(String tokenAuthScheme, String accessToken , String refreshToken) {
     this.tokenAuthScheme = tokenAuthScheme;
     this.accessToken = accessToken;
+    this.refreshToken = refreshToken;
   }
 }

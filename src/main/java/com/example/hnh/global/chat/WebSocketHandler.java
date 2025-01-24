@@ -60,12 +60,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
-
+        super.handleTransportError(session, exception);
+        System.out.println(session.getId()+"사용자 에러발생"+exception.getMessage());
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
-        log.info(session.getId()+"is disconnected");
+        log.info("{}is disconnected", session.getId());
     }
 
     @Override

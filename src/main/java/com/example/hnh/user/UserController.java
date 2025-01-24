@@ -1,6 +1,7 @@
 package com.example.hnh.user;
 
 import com.example.hnh.global.config.auth.UserDetailsImpl;
+import com.example.hnh.global.util.AuthenticationScheme;
 import com.example.hnh.user.dto.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,16 +30,24 @@ public class UserController {
 
     // 사용자 로그인
     @PostMapping("/login")
-    public ResponseEntity<CommonResponseBody<JwtAuthResponse>> login(
+    public ResponseEntity<CommonResponseBody<String>> login(
             @Valid @RequestBody AccountRequest accountRequest) {
         JwtAuthResponse authResponse = this.userService.login(accountRequest);
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.set(authResponse.getTokenAuthScheme(),
-                authResponse.getAccessToken());
+                authResponse.getRefreshToken());
 
         return ResponseEntity.ok()
                 .headers(responseHeaders)
-                .body(new CommonResponseBody<>("로그인 성공"));
+                .body(new CommonResponseBody<>("로그인 성공" , authResponse.getAccessToken()));
+    }
+
+    @GetMapping("/{userId}/tokenRefresh")
+    public ResponseEntity<CommonResponseBody<String>> accessTokenRefresh(
+            @RequestHeader("Authorization") String refreshToken,
+            @PathVariable Long userId
+    ){
+        return ResponseEntity.ok().body(new CommonResponseBody<>("accessTokenRefresh" , userService.accessTokenRefresh(userId,refreshToken)));
     }
 
     //회원 조회

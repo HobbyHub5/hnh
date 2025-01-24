@@ -11,6 +11,7 @@ import com.example.hnh.member.MemberRepository;
 import com.example.hnh.member.MemberRole;
 import com.example.hnh.user.User;
 import com.example.hnh.user.UserRepository;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,14 +32,16 @@ public class GroupService {
     private final MemberRepository memberRepository;
     private final RedisRankingRepository redisRankingRepository;
     private final InterestGroupRepository interestGroupRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    public GroupService(GroupRepository groupRepository, S3Service s3Service, UserRepository userRepository, MemberRepository memberRepository, RedisRankingRepository redisRankingRepository, InterestGroupRepository interestGroupRepository) {
+    public GroupService(GroupRepository groupRepository, S3Service s3Service, UserRepository userRepository, MemberRepository memberRepository, RedisRankingRepository redisRankingRepository, InterestGroupRepository interestGroupRepository, RedisTemplate<String, Object> redisTemplate) {
         this.groupRepository = groupRepository;
         this.s3Service = s3Service;
         this.userRepository = userRepository;
         this.memberRepository = memberRepository;
         this.redisRankingRepository = redisRankingRepository;
         this.interestGroupRepository = interestGroupRepository;
+        this.redisTemplate = redisTemplate;
     }
 
 
@@ -75,7 +78,7 @@ public class GroupService {
         memberRepository.save(member);
 
         // Redis에 그룹 추가 (초기 관심 수 0)
-        redisRankingRepository.addGroupToRanking(group.getId(), 0);
+//        redisRankingRepository.addGroupToRanking(group.getId(), 0);
 
         // GroupResponseDto 변환 및 반환
         return GroupResponseDto.toDto(group);
@@ -171,6 +174,12 @@ public class GroupService {
      * @return
      */
     public List<GroupRankingResponseDto> findAllGroupsWithRanking() {
+
+        if (Boolean.TRUE.equals(redisTemplate.hasKey("group_ranking"))) {
+            redisTemplate.delete("group_ranking");
+            System.out.println("기존 Redis의 group_ranking 데이터를 삭제했습니다.");
+        }
+
         // Redis에서 랭킹 데이터 가져오기
         Set<ZSetOperations.TypedTuple<Object>> rankedGroups = redisRankingRepository.getTopRankedGroups();
         // Redis에서 그룹 랭킹 데이터를 ZSet 형식으로 가져옴 (그룹 ID와 스코어 포함)
@@ -190,7 +199,6 @@ public class GroupService {
                 redisRankingRepository.addGroupToRanking(group.getId(), interestCount); // Redis에 추가
             }
         }
-
         // Redis에서 동기화된 데이터 다시 가져오기
         rankedGroups = redisRankingRepository.getTopRankedGroups();
 

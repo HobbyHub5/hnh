@@ -1,11 +1,13 @@
 package com.example.hnh.group;
 
 
+import com.example.hnh.global.config.annotation.AccessibleMember;
 import com.example.hnh.global.config.auth.UserDetailsImpl;
 import com.example.hnh.group.dto.GroupDetailResponseDto;
 import com.example.hnh.group.dto.GroupRankingResponseDto;
 import com.example.hnh.group.dto.GroupRequestDto;
 import com.example.hnh.group.dto.GroupResponseDto;
+import com.example.hnh.member.MemberRole;
 import com.example.hnh.user.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +36,7 @@ public class GroupController {
      * @return
      * @throws IOException
      */
+//    @AccessibleMember(requiredRoles = MemberRole.MEMBER)
     @PostMapping
     public ResponseEntity<GroupResponseDto> createGroup (@AuthenticationPrincipal UserDetailsImpl userDetails,
                                                          @RequestPart("requestDto") GroupRequestDto requestDto,

@@ -7,10 +7,16 @@ import com.example.hnh.group.dto.GroupDetailResponseDto;
 import com.example.hnh.group.dto.GroupRankingResponseDto;
 import com.example.hnh.group.dto.GroupRequestDto;
 import com.example.hnh.group.dto.GroupResponseDto;
+import com.example.hnh.member.Member;
+import com.example.hnh.member.MemberRepository;
 import com.example.hnh.member.MemberRole;
+import com.example.hnh.member.MemberService;
 import com.example.hnh.user.User;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,9 +29,11 @@ import java.util.List;
 public class GroupController {
 
     private final GroupService groupService;
+    private final MemberRepository memberRepository;
 
-    public GroupController(GroupService groupService) {
+    public GroupController(GroupService groupService, MemberRepository memberRepository) {
         this.groupService = groupService;
+        this.memberRepository = memberRepository;
     }
 
     /**
@@ -110,5 +118,31 @@ public class GroupController {
 
         List<GroupRankingResponseDto> groups = groupService.findAllGroupsWithRanking();
         return ResponseEntity.ok(groups);
+    }
+
+
+    /**
+     * 그룹 선택 API
+     * @param groudId
+     * @param authentication
+     * @param servletRequest
+     * @return
+     */
+    @PostMapping("/{groudId}/choice")
+    public ResponseEntity<String> selectGroup (
+            @PathVariable Long groudId,
+            Authentication authentication,
+            HttpServletRequest servletRequest
+    ) {
+        // 인증 정보 내의 유저 정보 가져오기
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        User loginUser = userDetails.getUser();
+
+        Member member = memberRepository.findByUserIdAndGroupIdOrElseThrow(loginUser.getId(), groudId);
+
+        HttpSession session = servletRequest.getSession();
+        session.setAttribute("member", member);
+
+        return ResponseEntity.ok("그룹 선택 완료");
     }
 }

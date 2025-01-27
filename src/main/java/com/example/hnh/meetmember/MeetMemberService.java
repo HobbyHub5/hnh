@@ -1,5 +1,7 @@
 package com.example.hnh.meetmember;
 
+import com.example.hnh.global.error.errorcode.ErrorCode;
+import com.example.hnh.global.error.exception.CustomException;
 import com.example.hnh.meet.Meet;
 import com.example.hnh.meet.MeetRepository;
 import com.example.hnh.meetmember.dto.MeetDetailsResponseDto;
@@ -43,17 +45,15 @@ public class MeetMemberService {
 
         // 모임이 그룹에 속해 있는지 확인
         if (!meet.getGroup().getId().equals(groupId)) {
-            throw new IllegalArgumentException("모임이 해당 그룹에 속해 있지 않습니다.");
+            throw new CustomException(ErrorCode.RESOURCES_NOT_FOUND);
         }
 
         // 모임 상태 확인
-        if ("deleted".equals(meet.getStatus())) {
-            throw new IllegalArgumentException("삭제된 모임입니다.");
-        }
+        checkMeetStatus(meet);
 
         // 마감 시간 확인
         if (meet.getDueAt().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("모임 참여 마감 시간이 지났습니다.");
+            throw new CustomException(ErrorCode.MEET_NOT_FOUND);
         }
 
         // 사용자가 그룹에 속해 있는지 확인
@@ -62,7 +62,7 @@ public class MeetMemberService {
         // 사용자가 이미 모임에 참여했는지 확인
         Optional<MeetMember> existingMember = meetMemberRepository.findByMemberIdAndMeetId(loginUser.getId(), meetId);
         if (existingMember.isPresent()) {
-            throw new IllegalArgumentException("이미 모임에 참여 중입니다.");
+            throw new CustomException(ErrorCode.DUPLICATE_MEET);
         }
 
         // 모임 멤버 생성 및 저장
@@ -80,7 +80,11 @@ public class MeetMemberService {
      * @param meetId
      * @return
      */
-    public MeetDetailsResponseDto findMeetMember(Long groupId, Long meetId) {
+    public MeetDetailsResponseDto findMeetMember(Long groupId, User loginUser, Long meetId) {
+
+        // 사용자가 그룹에 속해 있는지 확인
+        memberRepository.findByUserIdAndGroupIdOrElseThrow(loginUser.getId(), groupId);
+
         // 모임 조회
         Meet meet = meetRepository.findByMeetOrElseThrow(meetId);
 
@@ -108,6 +112,10 @@ public class MeetMemberService {
      * @return
      */
     public String changeMeetMemberStatus(Long groupId, Long meetId, User loginUser) {
+
+        // 사용자가 그룹에 속해 있는지 확인
+        memberRepository.findByUserIdAndGroupIdOrElseThrow(loginUser.getId(), groupId);
+
         // 모임 존재 여부 확인
         Meet meet = meetRepository.findByMeetOrElseThrow(meetId);
 
@@ -131,6 +139,17 @@ public class MeetMemberService {
 
         // 응답 메시지 반환
         return "active".equals(newStatus) ? "참여 등록되었습니다." : "참여 취소되었습니다.";
+    }
 
+
+
+    /**
+     * 모임 상태 확인 메서드
+     * @param meet
+     */
+    public void checkMeetStatus(Meet meet) {
+        if ("deleted".equals(meet.getStatus())) {
+            throw new IllegalArgumentException("이미 삭제된 모임입니다.");
+        }
     }
 }

@@ -49,7 +49,12 @@ public class MeetService {
 
         // dueAt이 createdAt보다 늦어야 함
         if (requestDto.getDueAt().isBefore(currentDateTime)) {
-            throw new IllegalArgumentException("모임 종료 날짜(dueAt)는 현재 날짜 이후여야 합니다.");
+            throw new CustomException(ErrorCode.INVALID_DUE_DATE);
+        }
+
+        // 제목과 설명은 필수값
+        if(requestDto.getMeetTitle() != null || requestDto.getDetail() != null) {
+            throw new CustomException(ErrorCode.BAD_REQUEST_RESOURCE);
         }
 
         // Meet 엔티티 생성
@@ -168,7 +173,7 @@ public class MeetService {
 
 
     // 모임 상태 확인 메서드
-    private void checkMeetStatus(Meet meet) {
+    public void checkMeetStatus(Meet meet) {
         if ("deleted".equals(meet.getStatus())) {
             throw new IllegalArgumentException("이미 삭제된 모임입니다.");
         }

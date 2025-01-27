@@ -1,5 +1,7 @@
 package com.example.hnh.interestgroup;
 
+import com.example.hnh.global.error.errorcode.ErrorCode;
+import com.example.hnh.global.error.exception.CustomException;
 import com.example.hnh.group.Group;
 import com.example.hnh.group.GroupRepository;
 import com.example.hnh.group.RedisRankingRepository;
@@ -34,7 +36,10 @@ public class InterestGroupService {
 
         // 그룹 존재 여부 확인
         Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 그룹입니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.GROUP_NOT_FOUND));
+
+        // 그룹 상태 확인
+        checkGroupStatus(group);
 
         // 관심 그룹 조회
         Optional<InterestGroup> existingInterest = interestGroupRepository.findByGroupIdAndUserId(groupId, userId);
@@ -79,17 +84,36 @@ public class InterestGroupService {
      * @return
      */
     public List<InterestGroupResponseDto> getUserInterestGroups(Long userId) {
-        // 좋아요 누른 그룹 목록 조회
+        // 관심 누른 그룹 목록 조회
         List<InterestGroup> interestGroups = interestGroupRepository.findByUserIdAndStatus(userId, "active");
 
         // DTO 리스트 생성 및 변환
         List<InterestGroupResponseDto> responseDtoList = new ArrayList<>();
         for (InterestGroup interestGroup : interestGroups) {
+
             Group group = interestGroup.getGroup();
+
+            // 그룹의 상태가 "active"가 아닌 경우 제외
+            if (!"active".equals(group.getStatus())) {
+                continue; // 그룹 상태가 비활성화된 경우 건너뛰기
+            }
+
             InterestGroupResponseDto dto = InterestGroupResponseDto.toDto(group);
             responseDtoList.add(dto);
         }
 
         return responseDtoList;
+    }
+
+
+    /**
+     * 그룹 상태 확인 메서드
+     * @param group
+     */
+    public void checkGroupStatus(Group group) {
+
+        if ("deleted".equals(group.getStatus())) {
+            throw new CustomException(ErrorCode.GROUP_NOT_FOUND);
+        }
     }
 }

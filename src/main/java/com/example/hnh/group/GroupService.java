@@ -1,6 +1,8 @@
 package com.example.hnh.group;
 
 import com.example.hnh.global.S3Service;
+import com.example.hnh.global.error.errorcode.ErrorCode;
+import com.example.hnh.global.error.exception.CustomException;
 import com.example.hnh.group.dto.GroupDetailResponseDto;
 import com.example.hnh.group.dto.GroupRankingResponseDto;
 import com.example.hnh.group.dto.GroupRequestDto;
@@ -61,7 +63,7 @@ public class GroupService {
 
         // 그룹 이름 중복 확인
         if (groupRepository.existsByName(groupName)) {
-            throw new IllegalArgumentException("이미 동일한 그룹 이름이 존재합니다.");
+            throw new CustomException(ErrorCode.DUPLICATE_RESOURCE);
         }
 
         // 이미지 업로드
@@ -96,7 +98,7 @@ public class GroupService {
 
         // 그룹 관리자 정보 조회
         User user = userRepository.findById(group.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 그룹 멤버 이름 리스트 조회
         List<String> members = memberRepository.findByGroupId(groupId)
@@ -120,6 +122,11 @@ public class GroupService {
 
         // 그룹 상태 확인
         checkGroupStatus(group);
+
+        // 수정 시 그룹 이름과 내용 필수값
+        if(group.getName() == null || group.getDetail() == null) {
+            throw new CustomException(ErrorCode.BAD_REQUEST_RESOURCE);
+        }
 
         // 그룹 정보 업데이트
         group.updateGroup(requestDto.getGroupName(), requestDto.getDetail(), requestDto.getImagePath());
@@ -161,7 +168,7 @@ public class GroupService {
     public void checkGroupStatus(Group group) {
 
         if ("deleted".equals(group.getStatus())) {
-            throw new IllegalArgumentException("삭제된 그룹입니다.");
+            throw new CustomException(ErrorCode.GROUP_NOT_FOUND);
         }
     }
 
@@ -187,6 +194,12 @@ public class GroupService {
         List<Group> allGroups = groupRepository.findAll(); // DB에서 모든 그룹 가져오기
 
         for (Group group : allGroups) {
+
+            // 그룹의 status가 "active"인지 확인
+            if (!"active".equals(group.getStatus())) {
+                continue; // active가 아니면 처리하지 않음
+            }
+
             boolean isGroupInRedis = rankedGroups.stream()
                     .anyMatch(rankedGroup -> Long.valueOf(rankedGroup.getValue().toString()).equals(group.getId()));
 

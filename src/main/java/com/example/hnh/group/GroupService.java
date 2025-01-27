@@ -77,9 +77,6 @@ public class GroupService {
         Member member = new Member(MemberRole.GROUP_ADMIN, loginUser, group);
         memberRepository.save(member);
 
-        // Redis에 그룹 추가 (초기 관심 수 0)
-//        redisRankingRepository.addGroupToRanking(group.getId(), 0);
-
         // GroupResponseDto 변환 및 반환
         return GroupResponseDto.toDto(group);
 

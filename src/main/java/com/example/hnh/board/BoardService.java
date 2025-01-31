@@ -17,12 +17,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -130,25 +128,6 @@ public class BoardService {
             Board board = boardRepository.findByBoardIdOrElseThrow(boardId);
             redisTemplate.opsForValue().set(redisKey, String.valueOf(board.getView()));
             return board.getView();
-        }
-    }
-
-    //조회수 동기화(1분마다 동기화)
-    @Transactional
-    @Scheduled(fixedRate = 60000)
-    public void syncViewToDatabase() {
-        Set<String> keys = redisTemplate.keys("board:view:*");
-        if(keys != null){
-            for(String key : keys){
-                Long boardId = Long.parseLong(key.split(":")[2]);
-                String viewCount = redisTemplate.opsForValue().get(key);
-
-                if(viewCount != null) {
-                    Board board = boardRepository.findByBoardIdOrElseThrow(boardId);
-                    board.setView(Long.parseLong(viewCount));
-                    boardRepository.save(board);
-                }
-            }
         }
     }
 

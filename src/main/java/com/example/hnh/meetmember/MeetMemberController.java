@@ -46,9 +46,12 @@ public class MeetMemberController {
     @GetMapping("/{groupId}/meets/{meetId}")
     public ResponseEntity<MeetDetailsResponseDto> findMeetMember(
             @PathVariable Long groupId,
-            @PathVariable Long meetId) {
+            @PathVariable Long meetId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        MeetDetailsResponseDto responseDto = meetMemberService.findMeetMember(groupId, meetId);
+        User loginUser = userDetails.getUser();
+
+        MeetDetailsResponseDto responseDto = meetMemberService.findMeetMember(groupId, loginUser ,meetId);
         return ResponseEntity.ok(responseDto);
     }
 

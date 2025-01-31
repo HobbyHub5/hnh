@@ -95,9 +95,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     if (tokenFound) {
       return bearerToken.substring(headerPrefix.length());
     }
-
     return null;
   }
+
+
 
   /**
    * {@code SecurityContext}에 인증 객체를 저장한다.

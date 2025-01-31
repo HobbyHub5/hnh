@@ -14,6 +14,9 @@ public enum ErrorCode {
     PASSWORD_ERROR(BAD_REQUEST, "패스워드 에러"),
     PASSWORD_UPDATE_ERROR(BAD_REQUEST, "새로운 비밀번호는 현재 비밀번호를 사용할 수 없습니다."),
     INVALID_IMAGE_URL(BAD_REQUEST, "지원되지 않는 이미지 주소 형식입니다"),
+    BAD_REQUEST_RESOURCE(BAD_REQUEST, "잘못된 리소스 값을 입력했습니다."),
+    INVALID_DUE_DATE(BAD_REQUEST,"모임 종료 날짜(dueAt)는 현재 날짜 이후여야 합니다."),
+
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
     UNAUTHORIZED_AUTHOR(UNAUTHORIZED, "작성자만 수정/삭제가 가능합니다."),
     INVALID_TOKEN(UNAUTHORIZED,"인증되지 않는 토큰입니다."),
@@ -30,11 +33,13 @@ public enum ErrorCode {
     COMMENT_NOT_FOUND(NOT_FOUND, "해당 댓글을 찾을 수 없습니다."),
     REPLY_NOT_FOUND(NOT_FOUND, "해당 답글을 찾을 수 없습니다."),
     GROUP_NOT_FOUND(NOT_FOUND, "해당 그룹을 찾을 수 없습니다."),
+    MEET_NOT_FOUND(NOT_FOUND, "해당 모임을 찾을 수 없습니다."),
 
 
     /* 409 CONFLICT : Resource 의 현재 상태와 충돌. 보통 중복된 데이터 존재 */
     DUPLICATE_RESOURCE(CONFLICT, "데이터가 이미 존재합니다"),
-    DUPLICATE_MEMBER(CONFLICT, "이미 가입된 그룹입니다.")
+    DUPLICATE_MEMBER(CONFLICT, "이미 가입된 그룹입니다."),
+    DUPLICATE_MEET(CONFLICT,"이미 참여된 모임입니다.")
     ;
 
     private final HttpStatus httpStatus;

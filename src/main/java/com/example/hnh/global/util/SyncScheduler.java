@@ -17,33 +17,47 @@ public class SyncScheduler {
     private final BoardRepository boardRepository;
     private final RedisTemplate<String, String> redisTemplate;
 
-    @Scheduled(fixedRate = 86_400_000)   //24시간마다 레디스와 DB 동기화(이후 레디스 키 삭제)
+    //좋아요 동기화(24시간마다 동기화)
     @Transactional
-    public void syncLikesToDB() {
+    @Scheduled(fixedRate = 86_400_000)
+    public void syncLikesToDatabase() {
         Set<String> keys = redisTemplate.keys("board:like:*");
 
-        if(keys.isEmpty()){
-            return;
-        }
+        if(keys != null) {
+            for(String redisKey : keys) {
+                Long boardId = Long.parseLong(redisKey.split(":")[2]);
+                String likeCount = redisTemplate.opsForValue().get(redisKey);
 
-        for(String redisKey : keys){
-            Long boardId = boardIdFromKey(redisKey);
-
-            Long likeCount = Long.parseLong(redisTemplate.opsForValue().get(redisKey));
-            if(likeCount == null){
-                likeCount = 0L;
+                if(likeCount != null) {
+                    Board board = boardRepository.findByBoardIdOrElseThrow(boardId);
+                    board.setLikeCount(Long.parseLong(likeCount));
+                    boardRepository.save(board);
+                }
             }
 
-            Board board = boardRepository.findByBoardIdOrElseThrow(boardId);
-            board.setLikeCount(likeCount);
-            boardRepository.save(board);
-
-            redisTemplate.delete(redisKey);
+            redisTemplate.delete(keys);
         }
     }
 
+    //조회수 동기화(24시간마다 동기화)
+    @Transactional
+    @Scheduled(fixedRate = 86_400_000)
+    public void syncViewToDatabase() {
+        Set<String> keys = redisTemplate.keys("board:view:*");
 
-    private Long boardIdFromKey(String redisKey) {
-        return Long.parseLong(redisKey.split(":")[2]);
+        if(keys != null){
+            for(String redisKey : keys){
+                Long boardId = Long.parseLong(redisKey.split(":")[2]);
+                String viewCount = redisTemplate.opsForValue().get(redisKey);
+
+                if(viewCount != null) {
+                    Board board = boardRepository.findByBoardIdOrElseThrow(boardId);
+                    board.setView(Long.parseLong(viewCount));
+                    boardRepository.save(board);
+                }
+            }
+
+            redisTemplate.delete(keys);
+        }
     }
 }

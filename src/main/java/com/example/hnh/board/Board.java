@@ -62,4 +62,8 @@ public class Board extends BaseEntity{
     public void setView(Long view) {
         this.view = view;
     }
+
+    public void setLikeCount(Long likeCount) {
+        this.likeCount = likeCount;
+    }
 }

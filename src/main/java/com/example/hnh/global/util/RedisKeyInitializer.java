@@ -19,10 +19,21 @@ public class RedisKeyInitializer {
     }
 
     @PostConstruct
-    public void clearKeys() {
+    public void clearViewKeys() {
         String ddlAuto = environment.getProperty("spring.jpa.hibernate.ddl-auto");
         if("create".equalsIgnoreCase(ddlAuto) || "create-drop".equalsIgnoreCase(ddlAuto)) {
             Set<String> keys = redisTemplate.keys("board:view:*");
+            if(keys != null && !keys.isEmpty()) {
+                redisTemplate.delete(keys);
+            }
+        }
+    }
+
+    @PostConstruct
+    public void clearLikeKeys() {
+        String ddlAuto = environment.getProperty("spring.jpa.hibernate.ddl-auto");
+        if("create".equalsIgnoreCase(ddlAuto) || "create-drop".equalsIgnoreCase(ddlAuto)) {
+            Set<String> keys = redisTemplate.keys("board:like:*");
             if(keys != null && !keys.isEmpty()) {
                 redisTemplate.delete(keys);
             }

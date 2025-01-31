@@ -1,9 +1,11 @@
 package com.example.hnh.meet;
 
+import com.example.hnh.global.config.annotation.AccessibleMember;
 import com.example.hnh.global.config.auth.UserDetailsImpl;
 import com.example.hnh.meet.dto.MeetRequestDto;
 import com.example.hnh.meet.dto.MeetResponseDto;
 import com.example.hnh.meet.dto.MeetUpdateRequestDto;
+import com.example.hnh.member.MemberRole;
 import com.example.hnh.user.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -60,6 +62,7 @@ public class MeetController {
      * @param userDetails
      * @return
      */
+    @AccessibleMember(requiredRoles = {MemberRole.GROUP_ADMIN, MemberRole.MEMBER})
     @PatchMapping("/{groupId}/meets/{meetId}")
     public ResponseEntity<MeetResponseDto> updateMeet(
             @PathVariable Long groupId,
@@ -80,6 +83,7 @@ public class MeetController {
      * @param userDetails
      * @return
      */
+    @AccessibleMember(requiredRoles = {MemberRole.GROUP_ADMIN, MemberRole.MEMBER})
     @DeleteMapping("/{groupId}/meets/{meetId}")
     public ResponseEntity<String> deleteMeet(@PathVariable Long groupId,
                                              @PathVariable Long meetId,

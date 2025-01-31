@@ -36,10 +36,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
         String userId = uriQuery.substring(uriQuery.lastIndexOf("=") +1);
         log.info("userId = {} is connected", userId );
 
-        String token = session.getHandshakeHeaders().get("bearer").get(0);
-        String userEmail = this.jwtProvider.getUsername(token);
-        User user = userRepository.findByEmailOrElseThrow(userEmail);
-        log.info("userId = {} ", user.getId() );
     }
 
     //메시징
@@ -60,12 +56,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
-
+        super.handleTransportError(session, exception);
+        System.out.println(session.getId()+"사용자 에러발생"+exception.getMessage());
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
-        log.info(session.getId()+"is disconnected");
+        log.info("{}is disconnected", session.getId());
     }
 
     @Override

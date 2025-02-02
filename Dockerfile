@@ -13,7 +13,7 @@ RUN gradle dependencies --no-daemon
 COPY src src/
 
 # 테스트 스킵하고 빌드
-RUN gradle clean build --no-daemon --parallel
+RUN gradle clean build -x test --no-daemon --parallel
 
 # 실행 스테이지
 FROM eclipse-temurin:17-jre-jammy

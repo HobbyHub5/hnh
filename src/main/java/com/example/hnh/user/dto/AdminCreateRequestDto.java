@@ -23,6 +23,12 @@ public class AdminCreateRequestDto {
     @NotNull(message = "이름을 입력해주세요.")
     private String name;
 
+    public AdminCreateRequestDto(String email, String password, String name) {
+        this.email = email;
+        this.password = password;
+        this.name = name;
+    }
+
     public User toEntity() {
         return new User(
                 this.email,

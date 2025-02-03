@@ -10,7 +10,6 @@ import com.example.hnh.group.dto.GroupResponseDto;
 import com.example.hnh.member.Member;
 import com.example.hnh.member.MemberRepository;
 import com.example.hnh.member.MemberRole;
-import com.example.hnh.member.MemberService;
 import com.example.hnh.user.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -44,7 +43,6 @@ public class GroupController {
      * @return
      * @throws IOException
      */
-//    @AccessibleMember(requiredRoles = MemberRole.MEMBER)
     @PostMapping
     public ResponseEntity<GroupResponseDto> createGroup (@AuthenticationPrincipal UserDetailsImpl userDetails,
                                                          @RequestPart("requestDto") GroupRequestDto requestDto,
@@ -81,6 +79,7 @@ public class GroupController {
      * @param requestDto
      * @return
      */
+    @AccessibleMember(requiredRoles = MemberRole.GROUP_ADMIN)
     @PatchMapping("/{groupId}")
     public ResponseEntity<GroupResponseDto> updateGroup(@PathVariable Long groupId,
                                                         @RequestBody GroupRequestDto requestDto) {
@@ -97,6 +96,7 @@ public class GroupController {
      * @param userDetails
      * @return
      */
+    @AccessibleMember(requiredRoles = {MemberRole.GROUP_ADMIN} )
     @DeleteMapping("/{groupId}")
     public ResponseEntity<String> deleteGruop(@PathVariable Long groupId,
                                               @AuthenticationPrincipal UserDetailsImpl userDetails) {

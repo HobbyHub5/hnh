@@ -6,7 +6,6 @@ import com.example.hnh.meet.Meet;
 import com.example.hnh.meet.MeetRepository;
 import com.example.hnh.meetmember.dto.MeetDetailsResponseDto;
 import com.example.hnh.meetmember.dto.MeetMemberResponseDto;
-import com.example.hnh.member.Member;
 import com.example.hnh.member.MemberRepository;
 import com.example.hnh.user.User;
 import com.example.hnh.user.UserRepository;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class MeetMemberService {

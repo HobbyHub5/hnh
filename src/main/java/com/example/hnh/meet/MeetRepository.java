@@ -1,7 +1,6 @@
 package com.example.hnh.meet;
 
 
-import com.example.hnh.group.Group;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

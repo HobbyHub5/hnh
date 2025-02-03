@@ -181,7 +181,6 @@ public class GroupService {
 
         if (Boolean.TRUE.equals(redisTemplate.hasKey("group_ranking"))) {
             redisTemplate.delete("group_ranking");
-            System.out.println("기존 Redis의 group_ranking 데이터를 삭제했습니다.");
         }
 
         // Redis에서 랭킹 데이터 가져오기

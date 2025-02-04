@@ -21,7 +21,7 @@ public class ReplyService {
     @Transactional
     public ReplyResponseDto addReply(Long userId, Long commentId, String reply) {
         Comment comment = commentRepository.findByCommentIdOrElseThrow(commentId);
-        Member member = memberRepository.findByUserIdAndGroupIdOrElseThrow(comment.getBoard().getGroup().getId(), userId);
+        Member member = memberRepository.findByUserIdAndGroupIdOrElseThrow(userId, comment.getBoard().getGroup().getId());
 
         Reply newReply = new Reply(reply, member.getId(), comment);
         Reply savedReply = replyRepository.save(newReply);

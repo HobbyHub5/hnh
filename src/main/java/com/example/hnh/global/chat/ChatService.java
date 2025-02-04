@@ -4,7 +4,6 @@ package com.example.hnh.global.chat;
 import com.example.hnh.global.chat.dto.GetRoomResponseDto;
 import com.example.hnh.group.GroupService;
 import com.example.hnh.group.dto.GroupRankingResponseDto;
-import com.example.hnh.group.dto.GroupResponseDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +14,7 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -22,12 +22,12 @@ import java.util.*;
 public class ChatService {
 
     private final ObjectMapper objectMapper;
-    private Map<String, ChatRoom> chatRooms;
+    private ConcurrentHashMap<String, ChatRoom> chatRooms;
     private final GroupService groupService;
 
     @PostConstruct
     private void init() {
-        chatRooms = new LinkedHashMap<>();
+        chatRooms = new ConcurrentHashMap<>();
         // 1.전체 그룹 조회
         List<GroupRankingResponseDto> groupList =  groupService.findAllGroupsWithRanking();
         // 2.각 그룹id 으로 createRoom
@@ -45,8 +45,8 @@ public class ChatService {
     }
 
 
-    public ChatRoom getRoomById(String roomId) {
-        return chatRooms.get(roomId);
+    public Optional<ChatRoom> getRoomById(String roomId) {
+        return Optional.ofNullable(chatRooms.get(roomId));
     }
 
 

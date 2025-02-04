@@ -23,7 +23,7 @@ public class CommentService {
     @Transactional
     public CommentResponseDto addComment(Long userId, Long boardId, String comment) {
         Board board = boardRepository.findByBoardIdOrElseThrow(boardId);
-        Member member = memberRepository.findByUserIdAndGroupIdOrElseThrow(board.getMember().getGroup().getId(), userId);
+        Member member = memberRepository.findByUserIdAndGroupIdOrElseThrow(board.getGroup().getId(), userId);
 
         Comment newComment = new Comment(member.getId(), comment, board);
         Comment savedComment = commentRepository.save(newComment);

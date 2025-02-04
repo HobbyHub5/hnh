@@ -85,7 +85,7 @@ public class AdminService {
     }
 
     /**
-     * 유저 리포트 로직
+     * 유저 블락 로직
      *
      * @param reportUserRequestDto 유저 리포트 정보
      * @return
@@ -96,6 +96,11 @@ public class AdminService {
         //유저 조회
         User findUser = userRepository.findById(reportUserRequestDto.getUserId()).orElseThrow(
                 () -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        //조회한 유저가 admin 일 경우
+        if (findUser.getAuth().equals(UserRole.ADMIN)) {
+            throw new CustomException(ErrorCode.FORBIDDEN_ERROR);
+        }
 
         //요청 값과 같은 값인지 검증
         if (Objects.equals(findUser.getStatus(), reportUserRequestDto.getStatus())) {
@@ -110,7 +115,7 @@ public class AdminService {
     }
 
     /**
-     * 그룹 리포트 로직
+     * 그룹 블락 로직
      *
      * @param reportGroupRequestDto 그룹 리포트 정보
      * @return

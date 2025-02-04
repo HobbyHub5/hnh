@@ -53,7 +53,7 @@ public class MeetService {
         }
 
         // 제목과 설명은 필수값
-        if(requestDto.getMeetTitle() != null || requestDto.getDetail() != null) {
+        if(requestDto.getMeetTitle() == null || requestDto.getDetail() == null) {
             throw new CustomException(ErrorCode.BAD_REQUEST_RESOURCE);
         }
 

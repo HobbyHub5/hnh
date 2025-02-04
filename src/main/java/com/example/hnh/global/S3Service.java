@@ -1,4 +1,4 @@
-package com.example.hnh.global.s3;
+package com.example.hnh.global;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;

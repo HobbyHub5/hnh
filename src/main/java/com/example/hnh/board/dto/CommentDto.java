@@ -18,7 +18,9 @@ public class CommentDto {
     public CommentDto(Comment comment) {
         authorId = comment.getMemberId();
         this.comment = comment.getComment();
-        this.replies = comment.getReplies().stream().map(ReplyDto::new).collect(Collectors.toList());
+        this.replies = comment.getReplies().stream()
+                .filter(reply -> "active".equals(reply.getStatus()))
+                .map(ReplyDto::new).collect(Collectors.toList());
 
     }
 }

@@ -6,6 +6,7 @@ import com.example.hnh.global.error.errorcode.ErrorCode;
 import com.example.hnh.global.error.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -21,6 +22,7 @@ public class CategoryService {
      * @param createCategoryRequestDto 카테고리 생성 정보
      * @return
      */
+    @Transactional
     public CategoryResponseDto createCategory(CreateCategoryRequestDto createCategoryRequestDto) {
 
         //카테고리 중복 검증

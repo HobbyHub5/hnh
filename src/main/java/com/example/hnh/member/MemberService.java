@@ -35,7 +35,7 @@ public class MemberService {
     @Transactional
     public AddMemberResponseDto addMember(Long userId, Long groupId) {
         User user = userRepository.findByIdOrElseThrow(userId);
-        Group group = groupRepository.findById(groupId).orElse(null);
+        Group group = groupRepository.findByGroupOrElseThrow(groupId);
 
         Optional<Member> optionalMember = memberRepository.findByUserIdAndGroupId(userId, groupId);
         if(optionalMember.isPresent() && optionalMember.get().getStatus().equals("deleted")) {
@@ -47,7 +47,6 @@ public class MemberService {
         if(optionalMember.isPresent()) {
             throw new CustomException(ErrorCode.DUPLICATE_MEMBER);
         }
-
 
         Member member = new Member(MemberRole.MEMBER, user, group);
         member.setStatus("pending");

@@ -8,7 +8,6 @@ import com.example.hnh.member.Member;
 import jakarta.persistence.*;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 

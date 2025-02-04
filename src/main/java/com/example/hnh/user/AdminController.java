@@ -47,6 +47,24 @@ public class AdminController {
     }
 
     /**
+     * 관리자 통계 메서드
+     *
+     * @param startDate 조회 기간 시작 날짜
+     * @param endDate   조회 기간 마지막 날짜
+     * @param groupName 조회 그룹 이름
+     * @return
+     */
+    @GetMapping
+    public ResponseEntity<DashboardResponseDto> findStats(
+            @RequestParam(required = false, defaultValue = "2000-01-01") String startDate,
+            @RequestParam(required = false, defaultValue = "2099-12-31") String endDate,
+            @RequestParam String groupName
+            ) {
+
+        return ResponseEntity.ok(adminService.findStats(startDate, endDate, groupName));
+    }
+
+    /**
      * 유저 리포트 메서드
      *
      * @param reportUserRequestDto 유저 리포트 정보

@@ -1,5 +1,6 @@
 package com.example.hnh.user;
 
+import com.example.hnh.global.RedisService;
 import com.example.hnh.global.error.errorcode.ErrorCode;
 import com.example.hnh.global.error.exception.CustomException;
 import com.example.hnh.group.Group;
@@ -10,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -20,6 +22,7 @@ public class AdminService {
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final RedisService redisService;
 
     /**
      * 관리자 생성 로직
@@ -47,7 +50,42 @@ public class AdminService {
     }
 
     /**
-     * 유저 리포트 로직
+     * 관리자 통계 로직
+     *
+     * @param startDate 조회 기간 시작 날짜
+     * @param endDate   조회 기간 마지막 날짜
+     * @param groupName 조회 그룹 이름
+     * @return
+     */
+    public DashboardResponseDto findStats(String startDate, String endDate, String groupName) {
+
+        //LocalDate 로 변환
+        LocalDate start = LocalDate.parse(startDate);
+        LocalDate end = LocalDate.parse(endDate);
+
+        //Redis 에서 조회
+        DashboardResponseDto redisStats = redisService.findGroupStats(groupName, startDate, endDate);
+
+        //Redis 에 없을 경우
+        if (redisStats == null) {
+
+            //GroupRepository 에서 조회
+            DashboardResponseDto stats = groupRepository
+                    .findStatsByName(start.atStartOfDay(), end.atStartOfDay(), groupName);
+
+
+            if (stats == null) {
+                throw  new CustomException(ErrorCode.GROUP_NOT_FOUND);
+            }
+            //Redis 에 저장
+            redisService.saveGroupStats(stats, startDate, endDate);
+            return stats;
+        }
+        return redisStats;
+    }
+
+    /**
+     * 유저 블락 로직
      *
      * @param reportUserRequestDto 유저 리포트 정보
      * @return
@@ -58,6 +96,11 @@ public class AdminService {
         //유저 조회
         User findUser = userRepository.findById(reportUserRequestDto.getUserId()).orElseThrow(
                 () -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        //조회한 유저가 admin 일 경우
+        if (findUser.getAuth().equals(UserRole.ADMIN)) {
+            throw new CustomException(ErrorCode.FORBIDDEN_ERROR);
+        }
 
         //요청 값과 같은 값인지 검증
         if (Objects.equals(findUser.getStatus(), reportUserRequestDto.getStatus())) {
@@ -72,7 +115,7 @@ public class AdminService {
     }
 
     /**
-     * 그룹 리포트 로직
+     * 그룹 블락 로직
      *
      * @param reportGroupRequestDto 그룹 리포트 정보
      * @return

@@ -48,14 +48,17 @@ public class JwtProvider {
    * Member repository.
    */
   private final UserRepository userRepository;
+  @Getter
+  private final RedisRefreshTokenRepository redisRefreshTokenRepository;
 
-  public JwtProvider(UserRepository userRepository) {
+  public JwtProvider(UserRepository userRepository, RedisRefreshTokenRepository redisRefreshTokenRepository) {
     this.userRepository = userRepository;
+    this.redisRefreshTokenRepository = redisRefreshTokenRepository;
   }
 
   /**
    * <p>토큰 생성 후 리턴.</p>
-   * 입력받은 {@link Authentication}에서 추출한 {@code username}으로 {@link #generateTokenBy(String)} 이용한다.
+   * 입력받은 {@link Authentication}에서 추출한 {@code username}으로  이용한다.
    *
    * @param authentication 인증 완료된 후 세부 정보
    * @return 생성된 토큰
@@ -63,7 +66,19 @@ public class JwtProvider {
    */
   public String generateToken(Authentication authentication) throws EntityNotFoundException {
     String username = authentication.getName();
-    return this.generateTokenBy(username);
+    return this.generateTokenBy(username ,expiryMillis);
+  }
+
+  public String generateAccessTokenByRefreshToken(String email){
+    return this.generateTokenBy(email ,expiryMillis);
+  }
+
+  public String generateRefreshToken(Authentication authentication) throws EntityNotFoundException {
+    String username = authentication.getName();
+    User user = this.userRepository.findByEmail(username)
+            .orElseThrow(() -> new EntityNotFoundException("해당 email에 맞는 값이 존재하지 않습니다."));
+    redisRefreshTokenRepository.addUserToToken(user.getId(),this.generateTokenBy(username ,expiryMillis*7));
+    return this.generateTokenBy(username ,expiryMillis*7);
   }
 
   /**
@@ -109,11 +124,11 @@ public class JwtProvider {
    * @return 생성된 토큰
    * @throws EntityNotFoundException 입력받은 이메일에 해당하는 사용자를 찾지 못했을 경우
    */
-  private String generateTokenBy(String email) throws EntityNotFoundException {
+  private String generateTokenBy(String email , Long expiryMillis) throws EntityNotFoundException {
     User user = this.userRepository.findByEmail(email)
         .orElseThrow(() -> new EntityNotFoundException("해당 email에 맞는 값이 존재하지 않습니다."));
     Date currentDate = new Date();
-    Date expireDate = new Date(currentDate.getTime() + this.expiryMillis);
+    Date expireDate = new Date(currentDate.getTime() + expiryMillis);
 
     return Jwts.builder()
         .subject(email)
@@ -180,4 +195,5 @@ public class JwtProvider {
     final Claims claims = this.getClaims(token);
     return claimsResolver.apply(claims);
   }
+
 }

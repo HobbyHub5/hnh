@@ -1,6 +1,8 @@
 package com.example.hnh.global.chat;
 
 
+import com.example.hnh.global.error.errorcode.ErrorCode;
+import com.example.hnh.global.error.exception.CustomException;
 import com.example.hnh.global.util.JwtProvider;
 import com.example.hnh.member.MemberRepository;
 import com.example.hnh.user.User;
@@ -15,6 +17,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -31,11 +34,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
     //웹소켓 연결
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        String uriQuery  = Objects.requireNonNull(session.getUri()).getQuery();
-
-        String userId = uriQuery.substring(uriQuery.lastIndexOf("=") +1);
-        log.info("userId = {} is connected", userId );
-
     }
 
     //메시징
@@ -49,20 +47,23 @@ public class WebSocketHandler extends TextWebSocketHandler {
         String userId = uriQuery.substring(uriQuery.lastIndexOf("=") +1);
         User user = userRepository.findByIdOrElseThrow(Long.valueOf(userId));
         chatMessage.setSender(user.getName());
-        ChatRoom room = chatService.getRoomById(chatMessage.getRoomId());
-        room.handleActions(session, chatMessage, chatService , memberRepository);
+        Optional<ChatRoom> optionalChatRoom = chatService.getRoomById(chatMessage.getRoomId());
+        if (optionalChatRoom.isEmpty()){
+            chatService.sendMessage(session, "해당 그룹을 찾을수 없습니다.");
+        }else {
+            ChatRoom room = optionalChatRoom.get();
+            room.handleActions(session, chatMessage, chatService , memberRepository);
+        }
     }
 
 
     @Override
     public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
         super.handleTransportError(session, exception);
-        System.out.println(session.getId()+"사용자 에러발생"+exception.getMessage());
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
-        log.info("{}is disconnected", session.getId());
     }
 
     @Override

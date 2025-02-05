@@ -48,7 +48,7 @@ public class WebSecurityConfig {
      * 화이트 리스트.
      */
     private static final String[] WHITE_LIST = {"/users/login", "/users/signup", "/error", "/admins/signup"
-            , "/ws/chat" , "/room" , "/chats/**"};
+            , "/ws/chat" , "/room" , "/chats/**", "/swagger-ui/**", "/swagger-resources/**", "/webjars/**", "/v3/api-docs/**"};
 
     /**
      * security 필터.
@@ -113,5 +113,4 @@ public class WebSecurityConfig {
     public WebSecurityCustomizer configureH2ConsoleEnable() {
         return web -> web.ignoring().requestMatchers("/h2-console/**");
     }
-
 }

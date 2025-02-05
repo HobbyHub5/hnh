@@ -149,6 +149,8 @@ public class MeetService {
     public void deleteMeet(Long groupId, Long meetId, User loginUser) {
         // 모임 조회
         Meet meet = meetRepository.findByMeetOrElseThrow(meetId);
+        // 멤버 찾기
+        Member member = memberRepository.findByUserIdAndGroupIdOrElseThrow(loginUser.getId(), groupId);
 
         // 모임이 해당 그룹에 속해 있는지 확인
         if (!meet.getGroup().getId().equals(groupId)) {
@@ -156,7 +158,7 @@ public class MeetService {
         }
 
         // 유저가 모임 생성자인지 확인
-        if (!meet.getMemberId().equals(loginUser.getId())) {
+        if (!meet.getMemberId().equals(member.getId())) {
             throw new IllegalArgumentException("모임 생성자만 삭제할 수 있습니다.");
         }
 

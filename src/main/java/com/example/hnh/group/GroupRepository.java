@@ -47,4 +47,12 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
     @Query("SELECT g FROM Group g JOIN User u ON g.userId = u.id")
     List<Group> findAllGroupsWithUser();
 
+
+    @Query("SELECT g FROM Group g " +
+            "LEFT JOIN InterestGroup ig ON g.id = ig.group.id " +
+            "WHERE g.status = 'active' " +
+            "GROUP BY g.id " +
+            "ORDER BY COUNT(ig.id) DESC")
+    List<Group> findAllGroupsOrderByInterestCount();
+
 }

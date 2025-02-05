@@ -12,6 +12,8 @@ import com.example.hnh.member.Member;
 import com.example.hnh.member.MemberRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +33,7 @@ public class BoardService {
     private final MemberRepository memberRepository;
     private final S3Service s3Service;
     private final RedisTemplate<String, String> redisTemplate;
+    private final RedissonClient redissonClient;
 
     @Transactional
     public BoardResponseDto createBoard(Long userId, Long groupId, String title, String detail, MultipartFile image) throws IOException {
@@ -111,9 +115,23 @@ public class BoardService {
 
     @Transactional
     public void incrementView(Long boardId) {
-        String redisKey = getRedisKey(boardId);
+        String lockKey = getLockRedisKey(boardId);
+        RLock lock = redissonClient.getLock(lockKey);
 
-        redisTemplate.opsForValue().increment(redisKey);
+        try{
+            if(lock.tryLock(5,2, TimeUnit.SECONDS)){   //최대 2초 대기, 5초 유지
+                String redisKey = getRedisKey(boardId);
+                redisTemplate.opsForValue().increment(redisKey);
+            }else{
+                throw new CustomException(ErrorCode.LOCK_ACQUIRE_FAILED);
+            }
+        }catch (InterruptedException e){
+            Thread.currentThread().interrupt();
+        }finally {
+            if(lock.isHeldByCurrentThread()){
+                lock.unlock();
+            }
+        }
     }
 
     public Long getViewCount(Long boardId) {
@@ -133,5 +151,9 @@ public class BoardService {
 
     private String getRedisKey(Long boardId) {
         return "board:view:" + boardId;
+    }
+
+    private String getLockRedisKey(Long boardId) {
+        return "lock:board:view:" + boardId;
     }
 }

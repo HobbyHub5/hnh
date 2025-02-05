@@ -23,6 +23,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     Optional<Member> findByUserIdAndGroupIdWithStatus(Long userId, Long groupId);
 
     default Member findByUserIdAndGroupIdOrElseThrow(Long userId, Long groupId) {
+        System.out.println("userId : " + userId + "  /group : " + groupId );
         return findByUserIdAndGroupIdWithStatus(userId, groupId).orElseThrow(
                 () -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
     }

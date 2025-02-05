@@ -24,6 +24,7 @@ public enum ErrorCode {
     /* 403 FORBIDDEN : 권한이 없음 */
     UNAUTHORIZED_USER(FORBIDDEN, "권한이 없습니다. 해당유저만 가능합니다."),
     FORBIDDEN_ERROR(FORBIDDEN,"권한이 없습니다."),
+    LOCK_ACQUIRE_FAILED(FORBIDDEN, "락 획득 실패"),
 
     /* 404 NOT_FOUND : Resource 를 찾을 수 없음 */
     RESOURCES_NOT_FOUND(NOT_FOUND, "해당 리소트 값을 찾을 수 없습니다."),

@@ -63,7 +63,7 @@ public class MeetService {
                 requestDto.getDetail(),
                 requestDto.getDueAt(),
                 group,
-                loginUser.getId() // 로그인한 사용자 ID를 memberId로 저장
+                member.getId() // 로그인한 사용자 ID를 memberId로 저장
         );
 
         // 저장 후 DTO 변환

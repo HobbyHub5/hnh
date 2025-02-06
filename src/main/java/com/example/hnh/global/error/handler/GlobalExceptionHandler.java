@@ -46,15 +46,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler
     public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException e) {
-
-        log.error("handleDataException throw Exception : {}", ErrorCode.INVALID_TOKEN);
         return ErrorResponse.toResponseEntity(ErrorCode.INVALID_TOKEN);
     }
 
     @ExceptionHandler
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException e) {
-        log.error("handleDataException throw Exception : {}", ErrorCode.FORBIDDEN_ERROR);
-        HttpStatus httpStatus = HttpStatus.FORBIDDEN;
         return ErrorResponse.toResponseEntity(ErrorCode.FORBIDDEN_ERROR);
     }
 

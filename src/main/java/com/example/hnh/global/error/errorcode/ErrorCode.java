@@ -16,6 +16,8 @@ public enum ErrorCode {
     INVALID_IMAGE_URL(BAD_REQUEST, "지원되지 않는 이미지 주소 형식입니다"),
     BAD_REQUEST_RESOURCE(BAD_REQUEST, "잘못된 리소스 값을 입력했습니다."),
     INVALID_DUE_DATE(BAD_REQUEST,"모임 종료 날짜(dueAt)는 현재 날짜 이후여야 합니다."),
+    MEET_GROUP_MISMATCH(BAD_REQUEST, "모임이 해당 그룹에 속해있지 않습니다."),
+    MEET_ALREADY_DELETED(BAD_REQUEST,"이미 삭제된 모임 입니다."),
 
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
     UNAUTHORIZED_AUTHOR(UNAUTHORIZED, "작성자만 수정/삭제가 가능합니다."),
@@ -24,6 +26,7 @@ public enum ErrorCode {
     /* 403 FORBIDDEN : 권한이 없음 */
     UNAUTHORIZED_USER(FORBIDDEN, "권한이 없습니다. 해당유저만 가능합니다."),
     FORBIDDEN_ERROR(FORBIDDEN,"권한이 없습니다."),
+    LOCK_ACQUIRE_FAILED(FORBIDDEN, "락 획득 실패"),
 
     /* 404 NOT_FOUND : Resource 를 찾을 수 없음 */
     RESOURCES_NOT_FOUND(NOT_FOUND, "해당 리소트 값을 찾을 수 없습니다."),

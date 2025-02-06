@@ -40,7 +40,7 @@ public class MeetService {
 
         // 그룹 존재 여부 확인
         Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 그룹입니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.GROUP_NOT_FOUND));
 
         // 사용자가 해당 그룹에 속해 있는지 확인
         Member member = memberRepository.findByUserIdAndGroupIdOrElseThrow(loginUser.getId(), groupId);
@@ -53,7 +53,7 @@ public class MeetService {
         }
 
         // 제목과 설명은 필수값
-        if(requestDto.getMeetTitle() != null || requestDto.getDetail() != null) {
+        if(requestDto.getMeetTitle() == null || requestDto.getDetail() == null) {
             throw new CustomException(ErrorCode.BAD_REQUEST_RESOURCE);
         }
 
@@ -63,7 +63,7 @@ public class MeetService {
                 requestDto.getDetail(),
                 requestDto.getDueAt(),
                 group,
-                loginUser.getId() // 로그인한 사용자 ID를 memberId로 저장
+                member.getId() // 로그인한 사용자 ID를 memberId로 저장
         );
 
         // 저장 후 DTO 변환
@@ -113,7 +113,7 @@ public class MeetService {
 
         // 모임이 해당 그룹에 속해 있는지 확인
         if (!meet.getGroup().getId().equals(groupId)) {
-            throw new IllegalArgumentException("모임이 해당 그룹에 속해 있지 않습니다.");
+            throw new CustomException(ErrorCode.MEET_GROUP_MISMATCH);
         }
 
         // 수정 권한 확인 (모임 생성자만 수정 가능)
@@ -130,7 +130,7 @@ public class MeetService {
         }
         if (requestDto.getDueAt() != null) {
             if (requestDto.getDueAt().isBefore(meet.getCreatedAt())) {
-                throw new IllegalArgumentException("모임 종료 날짜(dueAt)는 생성 날짜 이후여야 합니다.");
+                throw new CustomException(ErrorCode.INVALID_DUE_DATE);
             }
             meet.setDueAt(requestDto.getDueAt());
         }
@@ -149,15 +149,17 @@ public class MeetService {
     public void deleteMeet(Long groupId, Long meetId, User loginUser) {
         // 모임 조회
         Meet meet = meetRepository.findByMeetOrElseThrow(meetId);
+        // 멤버 찾기
+        Member member = memberRepository.findByUserIdAndGroupIdOrElseThrow(loginUser.getId(), groupId);
 
         // 모임이 해당 그룹에 속해 있는지 확인
         if (!meet.getGroup().getId().equals(groupId)) {
-            throw new IllegalArgumentException("모임이 해당 그룹에 속해 있지 않습니다.");
+            throw new CustomException(ErrorCode.MEET_GROUP_MISMATCH);
         }
 
         // 유저가 모임 생성자인지 확인
-        if (!meet.getMemberId().equals(loginUser.getId())) {
-            throw new IllegalArgumentException("모임 생성자만 삭제할 수 있습니다.");
+        if (!meet.getMemberId().equals(member.getId())) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED_USER);
         }
 
         // 모임 상태 확인
@@ -175,7 +177,7 @@ public class MeetService {
     // 모임 상태 확인 메서드
     public void checkMeetStatus(Meet meet) {
         if ("deleted".equals(meet.getStatus())) {
-            throw new IllegalArgumentException("이미 삭제된 모임입니다.");
+            throw new CustomException(ErrorCode.MEET_ALREADY_DELETED);
         }
     }
 }

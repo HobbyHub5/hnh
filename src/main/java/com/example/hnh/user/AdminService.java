@@ -87,14 +87,14 @@ public class AdminService {
     /**
      * 유저 블락 로직
      *
-     * @param reportUserRequestDto 유저 리포트 정보
+     * @param blockUserRequestDto 유저 블락 정보
      * @return
      */
     @Transactional
-    public ReportUserResponseDto reportUser(ReportUserRequestDto reportUserRequestDto) {
+    public BlockUserResponseDto BlockUser(BlockUserRequestDto blockUserRequestDto) {
 
         //유저 조회
-        User findUser = userRepository.findById(reportUserRequestDto.getUserId()).orElseThrow(
+        User findUser = userRepository.findById(blockUserRequestDto.getUserId()).orElseThrow(
                 () -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         //조회한 유저가 admin 일 경우
@@ -103,38 +103,38 @@ public class AdminService {
         }
 
         //요청 값과 같은 값인지 검증
-        if (Objects.equals(findUser.getStatus(), reportUserRequestDto.getStatus())) {
+        if (Objects.equals(findUser.getStatus(), blockUserRequestDto.getStatus())) {
             throw new CustomException(ErrorCode.DUPLICATE_RESOURCE);
         }
 
         //유저 상태 변경, 저장
-        findUser.setStatus(reportUserRequestDto.getStatus());
+        findUser.setStatus(blockUserRequestDto.getStatus());
         User savedUser = userRepository.save(findUser);
 
-        return new ReportUserResponseDto(savedUser.getId(), savedUser.getStatus());
+        return new BlockUserResponseDto(savedUser.getId(), savedUser.getStatus());
     }
 
     /**
      * 그룹 블락 로직
      *
-     * @param reportGroupRequestDto 그룹 리포트 정보
+     * @param blockGroupRequestDto 그룹 블락 정보
      * @return
      */
-    public ReportGroupResponseDto reportGroup(ReportGroupRequestDto reportGroupRequestDto) {
+    public BlockGroupResponseDto BlockGroup(BlockGroupRequestDto blockGroupRequestDto) {
 
         //그룹 조회
-        Group findGroup = groupRepository.findById(reportGroupRequestDto.getGroupId()).orElseThrow(
+        Group findGroup = groupRepository.findById(blockGroupRequestDto.getGroupId()).orElseThrow(
                 () -> new CustomException(ErrorCode.GROUP_NOT_FOUND));
 
         //요청 값과 같은 값인지 검증
-        if (Objects.equals(findGroup.getStatus(), reportGroupRequestDto.getStatus())) {
+        if (Objects.equals(findGroup.getStatus(), blockGroupRequestDto.getStatus())) {
             throw new CustomException(ErrorCode.DUPLICATE_RESOURCE);
         }
 
         //그룹 상태 변경, 저장
-        findGroup.setStatus(reportGroupRequestDto.getStatus());
+        findGroup.setStatus(blockGroupRequestDto.getStatus());
         Group savedGroup = groupRepository.save(findGroup);
 
-        return new ReportGroupResponseDto(savedGroup.getId(), savedGroup.getStatus());
+        return new BlockGroupResponseDto(savedGroup.getId(), savedGroup.getStatus());
     }
 }

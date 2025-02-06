@@ -1,6 +1,8 @@
 package com.example.hnh.meet;
 
 
+import com.example.hnh.global.error.errorcode.ErrorCode;
+import com.example.hnh.global.error.exception.CustomException;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -13,7 +15,7 @@ public interface MeetRepository extends JpaRepository<Meet, Long> {
 
     default Meet findByMeetOrElseThrow (Long meetId) {
         return findById(meetId).orElseThrow(
-                () -> new IllegalArgumentException("모임을 찾을 수 없습니다.")
+                () -> new CustomException(ErrorCode.MEET_NOT_FOUND)
         );
     }
 

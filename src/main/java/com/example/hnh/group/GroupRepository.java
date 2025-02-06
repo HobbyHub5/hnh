@@ -45,10 +45,6 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
                                          @Param("groupName") String groupName);
 
 
-    // 그룹 정보와 관련된 데이터 조회 (User와 조인)
-    @Query("SELECT g FROM Group g JOIN User u ON g.userId = u.id")
-    List<Group> findAllGroupsWithUser();
-
 
     @Query("SELECT g FROM Group g " +
             "LEFT JOIN InterestGroup ig ON g.id = ig.group.id " +

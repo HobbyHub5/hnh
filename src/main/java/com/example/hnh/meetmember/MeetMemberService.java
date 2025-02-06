@@ -88,7 +88,7 @@ public class MeetMemberService {
 
         // 그룹에 속한 모임인지 확인
         if (!meet.getGroup().getId().equals(groupId)) {
-            throw new IllegalArgumentException("모임이 해당 그룹에 속하지 않습니다.");
+            throw new CustomException(ErrorCode.MEET_GROUP_MISMATCH);
         }
 
         // 활성화된 모임 멤버 ID 조회
@@ -119,7 +119,7 @@ public class MeetMemberService {
 
         // 그룹에 속한 모임인지 확인
         if (!meet.getGroup().getId().equals(groupId)) {
-            throw new IllegalArgumentException("모임이 해당 그룹에 속하지 않습니다.");
+            throw new CustomException(ErrorCode.MEET_GROUP_MISMATCH);
         }
 
         // 모임 멤버 조회
@@ -147,7 +147,7 @@ public class MeetMemberService {
      */
     public void checkMeetStatus(Meet meet) {
         if ("deleted".equals(meet.getStatus())) {
-            throw new IllegalArgumentException("이미 삭제된 모임입니다.");
+            throw new CustomException(ErrorCode.MEET_ALREADY_DELETED);
         }
     }
 }

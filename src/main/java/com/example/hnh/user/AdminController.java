@@ -65,30 +65,30 @@ public class AdminController {
     }
 
     /**
-     * 유저 리포트 메서드
+     * 유저 블락 메서드
      *
-     * @param reportUserRequestDto 유저 리포트 정보
+     * @param blockUserRequestDto 유저 리포트 정보
      * @return
      */
-    @PatchMapping("/report-users")
-    public ResponseEntity<ReportUserResponseDto> reportUser(
-            @Valid @RequestBody ReportUserRequestDto reportUserRequestDto
+    @PatchMapping("/block-users")
+    public ResponseEntity<BlockUserResponseDto> reportUser(
+            @Valid @RequestBody BlockUserRequestDto blockUserRequestDto
     ) {
 
-        return ResponseEntity.ok(adminService.reportUser(reportUserRequestDto));
+        return ResponseEntity.ok(adminService.BlockUser(blockUserRequestDto));
     }
 
     /**
-     * 그룹 리포트 메서드
+     * 그룹 블락 메서드
      *
-     * @param reportGroupRequestDto 그룹 리포트 정보
+     * @param blockGroupRequestDto 그룹 리포트 정보
      * @return
      */
-    @PatchMapping("/report-groups")
-    public ResponseEntity<ReportGroupResponseDto> reportGroup(
-            @Valid @RequestBody ReportGroupRequestDto reportGroupRequestDto
+    @PatchMapping("/block-groups")
+    public ResponseEntity<BlockGroupResponseDto> reportGroup(
+            @Valid @RequestBody BlockGroupRequestDto blockGroupRequestDto
     ) {
 
-        return ResponseEntity.ok(adminService.reportGroup(reportGroupRequestDto));
+        return ResponseEntity.ok(adminService.BlockGroup(blockGroupRequestDto));
     }
 }

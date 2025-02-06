@@ -4,7 +4,7 @@ import lombok.Getter;
 import software.amazon.awssdk.annotations.NotNull;
 
 @Getter
-public class ReportGroupRequestDto {
+public class BlockGroupRequestDto {
 
     @NotNull
     private Long groupId;
@@ -12,7 +12,7 @@ public class ReportGroupRequestDto {
     @NotNull
     private String status;
 
-    public ReportGroupRequestDto(Long groupId, String status) {
+    public BlockGroupRequestDto(Long groupId, String status) {
         this.groupId = groupId;
         this.status = status;
     }

@@ -4,6 +4,8 @@ package com.example.hnh.global.chat;
 import com.example.hnh.global.error.errorcode.ErrorCode;
 import com.example.hnh.global.error.exception.CustomException;
 import com.example.hnh.global.util.JwtProvider;
+import com.example.hnh.group.Group;
+import com.example.hnh.group.GroupRepository;
 import com.example.hnh.member.MemberRepository;
 import com.example.hnh.user.User;
 import com.example.hnh.user.UserRepository;
@@ -29,7 +31,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private final ChatService chatService;
     private final UserRepository userRepository;
     private final MemberRepository memberRepository;
-    private final JwtProvider jwtProvider;
+    private final GroupRepository groupRepository;
 
     //웹소켓 연결
     @Override
@@ -47,8 +49,14 @@ public class WebSocketHandler extends TextWebSocketHandler {
         String userId = uriQuery.substring(uriQuery.lastIndexOf("=") +1);
         User user = userRepository.findByIdOrElseThrow(Long.valueOf(userId));
         chatMessage.setSender(user.getName());
+        boolean groupExist = groupRepository.existsById(Long.valueOf(chatMessage.getRoomId()));
+        Group group = groupRepository.findByGroupOrElseThrow(Long.valueOf(chatMessage.getRoomId()));
+        if (groupExist) {
+            chatService.createRoom(chatMessage.getRoomId(), group.getName());
+        }
         Optional<ChatRoom> optionalChatRoom = chatService.getRoomById(chatMessage.getRoomId());
         if (optionalChatRoom.isEmpty()){
+
             chatService.sendMessage(session, "해당 그룹을 찾을수 없습니다.");
         }else {
             ChatRoom room = optionalChatRoom.get();

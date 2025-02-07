@@ -26,6 +26,20 @@ public class ChatRoom {
         this.name = name;
     }
 
+    public void exitSession(WebSocketSession session){
+        sessions.remove(session);
+    }
+
+    public String existSessionRoomId(WebSocketSession session){
+        if (sessions.contains(session)){
+            return roomId;
+        }
+        return null;
+    }
+    public boolean existSession(WebSocketSession session){
+        return sessions.contains(session);
+    }
+
     public void handleActions(WebSocketSession session, ChatMessage chatMessage, ChatService chatService , MemberRepository memberRepository) {
         String uriQuery  = Objects.requireNonNull(session.getUri()).getQuery();
         String userId = uriQuery.substring(uriQuery.lastIndexOf("=") +1);

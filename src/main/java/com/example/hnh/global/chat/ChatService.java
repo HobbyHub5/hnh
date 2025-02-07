@@ -44,6 +44,17 @@ public class ChatService {
         return rooms;
     }
 
+    public List<String> getRoomsBySession(WebSocketSession session){
+        List<String> roomIds = new ArrayList<>();
+        Set<String> roomId = chatRooms.keySet();
+        for (String s : roomId){
+            if (chatRooms.get(s).existSession(session)){
+                roomIds.add((chatRooms.get(s).existSessionRoomId(session)));
+            }
+        }
+        return roomIds;
+    }
+
 
     public Optional<ChatRoom> getRoomById(String roomId) {
         return Optional.ofNullable(chatRooms.get(roomId));

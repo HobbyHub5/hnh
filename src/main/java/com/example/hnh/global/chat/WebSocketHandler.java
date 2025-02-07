@@ -44,14 +44,12 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
         String payload = (String) textMessage.getPayload();
         ChatMessage chatMessage = objectMapper.readValue(payload, ChatMessage.class);
-
         String uriQuery  = Objects.requireNonNull(session.getUri()).getQuery();
         String userId = uriQuery.substring(uriQuery.lastIndexOf("=") +1);
         User user = userRepository.findByIdOrElseThrow(Long.valueOf(userId));
         chatMessage.setSender(user.getName());
         boolean groupExist = groupRepository.existsById(Long.valueOf(chatMessage.getRoomId()));
         Group group = groupRepository.findByGroupOrElseThrow(Long.valueOf(chatMessage.getRoomId()));
-
         Optional<ChatRoom> optionalChatRoom = chatService.getRoomById(chatMessage.getRoomId());
         if (optionalChatRoom.isEmpty()){
             if (groupExist) {

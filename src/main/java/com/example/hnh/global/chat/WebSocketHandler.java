@@ -18,6 +18,7 @@ import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -73,6 +74,12 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
+        List<String > roomList = chatService.getRoomsBySession(session);
+        for (String s : roomList) {
+            Optional<ChatRoom> optionalChatRoom = chatService.getRoomById(s);
+            ChatRoom chatRoom = optionalChatRoom.get();
+            chatRoom.exitSession(session);
+        }
     }
 
     @Override

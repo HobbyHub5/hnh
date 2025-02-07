@@ -44,20 +44,21 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
         String payload = (String) textMessage.getPayload();
         ChatMessage chatMessage = objectMapper.readValue(payload, ChatMessage.class);
-
         String uriQuery  = Objects.requireNonNull(session.getUri()).getQuery();
         String userId = uriQuery.substring(uriQuery.lastIndexOf("=") +1);
         User user = userRepository.findByIdOrElseThrow(Long.valueOf(userId));
         chatMessage.setSender(user.getName());
         boolean groupExist = groupRepository.existsById(Long.valueOf(chatMessage.getRoomId()));
         Group group = groupRepository.findByGroupOrElseThrow(Long.valueOf(chatMessage.getRoomId()));
-        if (groupExist) {
-            chatService.createRoom(chatMessage.getRoomId(), group.getName());
-        }
         Optional<ChatRoom> optionalChatRoom = chatService.getRoomById(chatMessage.getRoomId());
         if (optionalChatRoom.isEmpty()){
-
-            chatService.sendMessage(session, "해당 그룹을 찾을수 없습니다.");
+            if (groupExist) {
+                chatService.createRoom(chatMessage.getRoomId(), group.getName());
+                Optional<ChatRoom> optionalRoom = chatService.getRoomById(chatMessage.getRoomId());
+                optionalRoom.ifPresent(chatRoom -> chatRoom.handleActions(session, chatMessage, chatService, memberRepository));
+            }else{
+                chatService.sendMessage(session, "해당 그룹을 찾을수 없습니다.");
+            }
         }else {
             ChatRoom room = optionalChatRoom.get();
             room.handleActions(session, chatMessage, chatService , memberRepository);
